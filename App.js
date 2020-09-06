@@ -35,36 +35,35 @@ const App: () => React$Node = () => {
   const [data, setData] = useState(dummyData);
   const myFlatList = useRef(null);
   const [selectedId, setSelectedId] = useState(-1);
-  console.log('selectedId', selectedId);
 
-  // data with selection
+  const onClickedHandler = React.useCallback((id) => {
+    setSelectedId((prevState) => {
+      if (prevState === id) {
+        return '-1';
+      } else {
+        return id;
+      }
+    });
+  }, []);
+
+  // array with detail about which is selected
   let selectedIndex;
-  const dataWithSelection = data.map((item, index) => {
-    if (item.selected) {
-      const updatedItem = {...item};
-      delete updatedItem.selected;
-      return updatedItem;
-    } else if (item.id === selectedId) {
+  const selected = data.map((item, index) => {
+    if (item.id === selectedId) {
       selectedIndex = index;
-      return {...item, selected: true};
+      return true;
     } else {
-      return item;
+      return false;
     }
   });
 
-  // array with detail about which is selected
-  const selected = data.map((item) => item.id === selectedId);
-
-  const onClickedHandler = React.useCallback((id) => {
-    setSelectedId(id);
-  }, []);
-
-  if (selectedIndex !== null && myFlatList.current) {
-    if (selectedIndex !== -1) {
+  if (selectedIndex && selectedIndex !== -1 && myFlatList.current) {
+    console.log('scroll now', selectedIndex);
+    setTimeout(() => {
       myFlatList.current.scrollToOffset({
         offset: selectedIndex * 49.8,
       });
-    }
+    }, 100);
   }
 
   return (
@@ -74,9 +73,16 @@ const App: () => React$Node = () => {
         <FlatList
           ref={myFlatList}
           contentContainerStyle={styles.flatListContainer}
-          data={dataWithSelection}
+          data={data}
           renderItem={({item, index}) => {
-            return <ListItem item={item} click={onClickedHandler} />;
+            return (
+              <ListItem
+                selected={selected[index]}
+                isLast={index === data.length - 1}
+                item={item}
+                click={onClickedHandler}
+              />
+            );
           }}
         />
       </SafeAreaView>
@@ -87,6 +93,7 @@ const App: () => React$Node = () => {
 const styles = StyleSheet.create({
   flatListContainer: {
     paddingTop: '5%',
+    paddingBottom: '5%',
   },
 });
 
